@@ -1,0 +1,14 @@
+{
+    "name": "sqlite",
+    "version": "1.0.0",
+    "description": "SQLite Database of Database Design Course",
+    "main": "create_ddh.js",
+    "scripts": {
+        "dev": "nodemon ./create_ddh.js"
+    },
+    "author": "Nguyen Khac Khanh (Encacap)",
+    "license": "ISC",
+    "dependencies": {
+        "sqlite3": "^5.0.0"
+    }
+}
