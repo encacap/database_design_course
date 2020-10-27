@@ -4,7 +4,7 @@ const Database = require("./utilities/database");
 const { number, date, items } = require("./utilities/random");
 const { format, increase, fromString } = require("./utilities/date");
 
-const name = "orders";
+const name = "tan";
 
 const database = new Database(new sqlite3.Database(`./src/databases/${name}.db`));
 
@@ -60,8 +60,9 @@ const exportSQL = (...data) => {
         });
     });
     fs.promises
-        .writeFileSync(`./src/sql/${name}.sql`, string, { encoding: "utf-8" })
-        .then(() => console.log("SQL: Success"));
+        .writeFile(`./src/sql/${name}.sql`, string, { encoding: "utf-8" })
+        .then(() => console.log("SQL: Success"))
+        .catch((error) => console.log(error));
 };
 
 // customers.forEach((customer) => {
@@ -170,12 +171,12 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
 // });
 
 const index = async () => {
-    await backup();
+    // await backup();
     const customers = await database.select("KHACH");
-    await DDH(customers);
+    // await DDH(customers);
     const orders = await database.select("DDH");
     const products = await database.select("HANG");
-    await CTDDH(orders, products);
+    // await CTDDH(orders, products);
     const ordersDetail = await database.select(
         "CTDDH",
         `
@@ -184,7 +185,7 @@ const index = async () => {
             WHERE A.MADDH = B.MADDH
         `
     );
-    await DOTGIAO_CTDGH(ordersDetail);
+    // await DOTGIAO_CTDGH(ordersDetail);
     const deliveries = await database.select("DOTGIAO");
     const deliveriesDetail = await database.select("CTDGH");
     exportSQL(orders, ordersDetail, deliveries, deliveriesDetail);
