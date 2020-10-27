@@ -1,9 +1,18 @@
 const sqlite3 = require("sqlite3");
+const fs = require("fs");
 const Database = require("./utilities/database");
 const { number, date, items } = require("./utilities/random");
 const { format, increase, fromString } = require("./utilities/date");
 
-const database = new Database(new sqlite3.Database("./src/databases/orders.db"));
+const name = "orders";
+
+const database = new Database(new sqlite3.Database(`./src/databases/${name}.db`));
+
+const backup = async () => {
+    const date = new Date();
+    const newName = `${name}.${date.getTime()}`;
+    await fs.promises.copyFile(`./src/databases/${name}.db`, `./src/databases_backup/${newName}.db`);
+};
 
 const ID = (prefix, number) => {
     if (number < 10) return `${prefix}00${number}`;
@@ -29,6 +38,26 @@ const DDH = async (customers) => {
         database.query(query);
         if (i % 17 === 0 && round <= 2) round += 1;
     }
+};
+
+const exportSQL = (...data) => {
+    const tablesName = ["DDH", "CTDDH", "DOTGIAO", "CTDGH"];
+    let string = "";
+    data.forEach((table, index) => {
+        string += `INSERT INTO ${tablesName[index]} VALUES \n`;
+        table.forEach((row, rowIndex) => {
+            let rowString = "(";
+            const rows = Object.keys(row);
+            rows.forEach((column, index) => {
+                if (index !== rows.length - 1) rowString += `'${row[column]}', `;
+                else rowString += `'${row[column]}'`;
+            });
+            if (rowIndex !== table.length - 1) rowString += "), \n";
+            else rowString += ") \n";
+            string += rowString;
+        });
+    });
+    fs.writeFileSync(`./src/sql/${name}.sql`, string, { encoding: "utf-8" });
 };
 
 // customers.forEach((customer) => {
@@ -132,6 +161,7 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
 // });
 
 const index = async () => {
+    await backup();
     const customers = await database.select("KHACH");
     await DDH(customers);
     const orders = await database.select("DDH");
@@ -146,6 +176,15 @@ const index = async () => {
         `
     );
     await DOTGIAO_CTDGH(ordersDetail);
+    const deliveries = await database.select("DOTGIAO");
+    const deliveriesDetail = await database.select("CTDGH");
+    exportSQL(orders, ordersDetail, deliveries, deliveriesDetail);
 };
+
+// console.log("INSERT INTO DDH VALUES");
+//     orders.forEach((order) => {
+//         const { MADDH, NGAYDH, NGAYHL, MAKH } = order;
+//         console.log(`('${MADDH}', '${NGAYDH}', '${NGAYHL}', '${MAKH}'),`);
+//     });
 
 index();
