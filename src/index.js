@@ -25,6 +25,7 @@ const DDH = async (customers) => {
     const resultNumbers = 51;
     let round = 0;
     await database.clear("DDH");
+    console.log("DDH: Clear");
     for (let i = 1; i <= resultNumbers; i += 1) {
         const ngayDH = date(years[round], i % 4);
         const ngayHL = increase(ngayDH, number(1, 10));
@@ -38,6 +39,7 @@ const DDH = async (customers) => {
         database.query(query);
         if (i % 17 === 0 && round <= 2) round += 1;
     }
+    console.log("DDH: Success");
 };
 
 const exportSQL = (...data) => {
@@ -57,7 +59,9 @@ const exportSQL = (...data) => {
             string += rowString;
         });
     });
-    fs.writeFileSync(`./src/sql/${name}.sql`, string, { encoding: "utf-8" });
+    fs.promises
+        .writeFileSync(`./src/sql/${name}.sql`, string, { encoding: "utf-8" })
+        .then(() => console.log("SQL: Success"));
 };
 
 // customers.forEach((customer) => {
@@ -73,6 +77,7 @@ const exportSQL = (...data) => {
 const CTDDH = async (orders, products) => {
     const productsLength = products.length;
     await database.clear("CTDDH");
+    console.log("CTDDH: Clear");
     orders.forEach((order) => {
         const { MADDH } = order;
         const orderProductNumbers = number(3, 7);
@@ -92,11 +97,14 @@ const CTDDH = async (orders, products) => {
             excludeProducts.push(MAHG);
         }
     });
+    console.log("CTDDH: Success");
 };
 
 const DOTGIAO_CTDGH = async (ordersDetail) => {
     await database.clear("DOTGIAO");
+    console.log("DOTGIAO: Clear");
     await database.clear("CTDGH");
+    console.log("CTDGH: Clear");
     const details = {};
     ordersDetail.forEach((detail) => {
         const { MADDH, MAHG, SLDAT, NGAYDH } = detail;
@@ -148,6 +156,7 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
             deliveryId += 1;
         }
     });
+    console.log("DOTGIAO & CTDGH: Success");
 };
 
 // products.forEach((product) => {
