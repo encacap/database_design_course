@@ -9,6 +9,8 @@
     "author": "Nguyen Khac Khanh (Encacap)",
     "license": "ISC",
     "dependencies": {
+        "log-symbols": "^4.0.0",
+        "ora": "^5.1.0",
         "sqlite3": "^5.0.0"
     }
 }
