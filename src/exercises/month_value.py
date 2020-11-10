@@ -1,5 +1,5 @@
 import os
-from database import Database
+from database import Database  # type: ignore
 
 
 def getFilename(filename):
@@ -28,19 +28,6 @@ def main():
 
     for month in valuePerMonths:
         print(month)
-
-    print("Thang co tong tri gia don dat hang lon nhat cua nam 2020: ", database.selectOne('''
-        SELECT D.MONTH, SUM(D.GTDDH) AS TTG
-        FROM (
-            SELECT strftime("%m", A.NGAYDH) AS MONTH, SUM(B.SLDAT * C.DONGIA) AS GTDDH
-            FROM DDH A, CTDDH B, HANG C
-            WHERE strftime("%Y", A.NGAYDH) = "2020"
-                AND A.MADDH = B.MADDH
-                AND B.MAHG = C.MAHG
-            GROUP BY A.MADDH
-        ) D
-        GROUP BY D.MONTH
-    '''))
 
     database.terminate()
 
