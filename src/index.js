@@ -2,6 +2,7 @@ const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
 const ora = require("ora");
 const logSymbols = require("log-symbols");
+const sqlFormatter = require("sql-formatter");
 
 const Database = require("./utilities/database");
 const { number, date, items } = require("./utilities/random");
@@ -23,11 +24,17 @@ const backup = async () => {
 const exportSQL = async () => {
     const effect = loading.show("Exporting SQL...");
     try {
-        await fs.promises.writeFile(`./src/sql/${name}.sql`, sql, { encoding: "utf-8" });
-        await loading.hide(effect, `Exporting SQL... ${color("Success!", 0)}`);
+        await fs.promises.writeFile(
+            `./src/sql/${name}.sql`,
+            sqlFormatter.format(sql, {
+                indent: "    ",
+            }),
+            { encoding: "utf-8" }
+        );
+        loading.hide(effect, `Exporting SQL... ${color("Success!", 0)}`);
         return undefined;
     } catch (error) {
-        await loading.hide(effect, `Exporting SQL... ${color(`Error! (${error.message})`, 1)}`, 1);
+        loading.hide(effect, `Exporting SQL... ${color(`Error! (${error.message})`, 1)}`, 1);
         return error;
     }
 };
@@ -278,18 +285,6 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
     `;
     await database.query(query);
     sql += query;
-    query = `
-        CREATE TABLE "CTDGH" (
-            "MADGH"	VARCHAR(4) NOT NULL,
-            "MAHG"	VARCHAR(4) NOT NULL,
-            "SLGH"	INTEGER NOT NULL,
-            FOREIGN KEY("MADGH") REFERENCES "DOTGIAO"("MADGH"),
-            FOREIGN KEY("MAHG") REFERENCES "HANG"("MAHG"),
-            PRIMARY KEY("MADGH","MAHG")
-        );
-    `;
-    await database.query(query);
-    sql += query;
     const details = {};
     ordersDetail.forEach((detail) => {
         const { MADDH, MAHG, SLDAT, NGAYDH } = detail;
@@ -337,9 +332,21 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
     deliveryProductsQuery =
         deliveryProductsQuery.trim(deliveryProductsQuery).slice(0, deliveryProductsQuery.length - 3) + "; \n";
     sql += deliveryQuery;
+    query = `
+        CREATE TABLE "CTDGH" (
+            "MADGH"	VARCHAR(4) NOT NULL,
+            "MAHG"	VARCHAR(4) NOT NULL,
+            "SLGH"	INTEGER NOT NULL,
+            FOREIGN KEY("MADGH") REFERENCES "DOTGIAO"("MADGH"),
+            FOREIGN KEY("MAHG") REFERENCES "HANG"("MAHG"),
+            PRIMARY KEY("MADGH","MAHG")
+        );
+    `;
+    sql += query;
     sql += deliveryProductsQuery.trim(deliveryProductsQuery).slice(0, deliveryProductsQuery.length - 3) + "; \n";
     try {
         await database.query(deliveryQuery);
+        await database.query(query);
         await database.query(deliveryProductsQuery);
         loading.hide(effect, `Creating DOTGIAO and CTDGH... ${color("Success!", 0)}`);
     } catch (error) {
@@ -350,6 +357,7 @@ const DOTGIAO_CTDGH = async (ordersDetail) => {
 
 const index = async () => {
     try {
+        await backup();
         const products = await standardizeTable("HANG", ["MAHG", "MALH"]);
         const productTypes = await standardizeTable("LOAIHG", ["MALH"]);
         const customers = await standardizeTable("KHACH", ["MAKH"]);
