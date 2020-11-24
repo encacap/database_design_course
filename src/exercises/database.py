@@ -16,6 +16,10 @@ class Database:
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
+    def select(self, query):
+        self.cursor.execute(query)
+        return self.cursor
+
     def terminate(self):
         self.connect.commit()
         self.connect.close()
