@@ -200,7 +200,7 @@ const DDH = async (customers) => {
     await database.query(query);
     sql += query;
     const years = [2018, 2019, 2020];
-    const resultNumbers = 10;
+    const resultNumbers = 50;
     const orders = [];
     let round = 0;
     query = "INSERT INTO DDH(MADDH, NGAYDH, NGAYHL, MAKH) VALUES \n";
