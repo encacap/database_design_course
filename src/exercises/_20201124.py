@@ -16,7 +16,7 @@ def one(database):
 
 def two(database):
     types = database.selectAll('''
-        SELECT * 
+        SELECT *
         FROM LOAIHG
     ''')
     table = PrettyTable()
@@ -73,12 +73,61 @@ def three(database):
     print(customersTable)
 
 
+def four(database):
+    customersTable = PrettyTable()
+    # customersTable.align["TTG"] = "l"
+    customers = database.select('''
+        SELECT A.MAKH, B.*, C.TENHG
+        FROM DDH A, CTDDH B, HANG C
+        WHERE A.MADDH = B.MADDH
+            AND B.MAHG = C.MAHG
+            AND A.MAKH = 'K0030'
+    ''')
+    customersTable = from_db_cursor(customers)
+    customersTable.title = "CAC DON DAT HANG CUA KHACH 'K0030'"
+    customersTable.align["TENHG"] = 'l'
+    print(customersTable)
+
+
+def five(database):
+    primaryTable = PrettyTable()
+    primaryTable.title = "T01"
+    primaryTable.field_names = ["MADDH", "NGAYDH", "NGAYHL", "MAKH", "TENKH", "MAHG", "DG", "SLD", "TRIGIA"]
+    primaryTable.align["DG"] = 'r'
+    primaryTable.align["SLD"] = 'r'
+    primaryTable.align["TRIGIA"] = 'r'
+    orders = database.selectAll('''
+        SELECT A.MADDH, A.NGAYDH, A.NGAYHL, A.MAKH, B.TENKH
+        FROM DDH A, KHACH B
+        WHERE A.MAKH = B.MAKH
+    ''')
+    for order in orders:
+        # detailTable = PrettyTable()
+        primaryTable.add_row([order[0], order[1], order[2], order[3], order[4], "", "", "", ""])
+        orderDetails = database.selectAll('''
+            SELECT A.MAHG, B.TENHG, B.DONGIA, A.SLDAT, A.SLDAT * B.DONGIA AS TRIGIA
+            FROM CTDDH A, HANG B
+            WHERE A.MADDH = '{0}'
+                AND A.MAHG = B.MAHG
+        '''.format(order[0]))
+        value = 0
+        for orderDetail in orderDetails:
+            primaryTable.add_row(["", "", "", "", "", orderDetail[0], round(
+                int(orderDetail[2]), 2), orderDetail[3], round(int(orderDetail[4]), 2)])
+            value += orderDetail[4]
+        primaryTable.add_row(["", "", "", "", "", "-----", "-----", "-----", "-----"])
+        primaryTable.add_row(["", "", "", "", "", "", "", "TRI GIA DON HANG", value])
+        # primaryTable.add_row(["******", "******", "******", "******", "******", "******", "******", "******", "******"])
+    print(primaryTable)
+
+
 def main():
     os.system("cls")
     database = Database(getFilename("../databases/orders.db"))
     # one(database)
     # two(database)
-    three(database)
+    # three(database)
+    five(database)
 
 
 if __name__ == "__main__":
